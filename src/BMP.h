@@ -54,6 +54,17 @@ struct BMP{
     BMPColorHeader bmp_color_header;
     std::vector<uint8_t> data;
 
+
+    //Create a BMP image in memory
+    BMP(int32_t width, int32_t height, bool has_alpha = true){
+
+        if(width <= 0 || height <= 0)
+            throw std::runtime_error("The image width and height must be positive numbers.");
+    }
+
+
+
+
     //Writing an image to disk
     void write(const char *fname){
 
