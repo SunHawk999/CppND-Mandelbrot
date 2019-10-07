@@ -60,9 +60,33 @@ struct BMP{
 
         if(width <= 0 || height <= 0)
             throw std::runtime_error("The image width and height must be positive numbers.");
+
+        bmp_info_header.width = width;
+        bmp_info_header.height = height;
+
+        if(has_alpha){
+            bmp_info_header.size = sizeof(BMPInfoHeader) + sizeof(BMPColorHeader);
+            file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + sizeof(BMPColorHeader);
+
+            bmp_info_header.bit_count = 32;
+            bmp_info_header.compression = 3;
+            row_stride = width * 4;
+            data.resize(row_stride * height);
+            file_header.file_size = file_header.offset_data + data.size();
+        }
+        else{
+            bmp_info_header.size = sizeof(BMPInfoHeader);
+            file_header.offset_data = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader);
+
+            bmp_info_header.bit_count = 24;
+            bmp_info_header.compression = 0;
+            row_stride = width * 3;
+            data.resize(row_stride * height);
+
+            uint32_t new_stride = make_stride_aligned(4);
+            file_header.file_size = file_header.offset_data + data.size() + bmp_info_header.height * (new_stride - row_stride);
+        }
     }
-
-
 
 
     //Writing an image to disk
