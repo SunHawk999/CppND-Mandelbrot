@@ -120,6 +120,26 @@ struct BMP{
     throw std::runtime_error("Unable to open the output image file.");
     }
 
+    //Modify a specified region of a created or read bmp image
+    void fillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h, uint8_t R, uint8_t G, uint8_t B, uint8_t A){
+
+        if(x0 + w > (uint32_t)bmp_info_header.width || y0 + h > (uint32_t)bmp_info_header.height)
+            throw std::runtime_error("This region does not fit in the image!");
+
+        uint32_t channels = bmp_info_header.bit_count / 8;
+        for(uint32_t x = x0; x < x0 + w; ++x){
+            for(uint32_t y = y0; y < y0 + h; ++y){
+                data[channels * (y * bmp_info_header.width + x) + 2] = R;
+                data[channels * (y * bmp_info_header.width + x) + 1] = G;
+                data[channels * (y * bmp_info_header.width + x) + 0] = B;
+
+                if(channels == 4)
+                    data[channels * (y * bmp_info_header.width + x) + 3] = A;
+            }
+        }
+    }
+
+
 private:
 
     uint32_t row_stride{0};
