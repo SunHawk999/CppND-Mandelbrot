@@ -3,6 +3,7 @@
 #include<fstream>
 #include<stdexcept>
 #include<vector>
+#include<iostream>
 
 //Header code based from https://solarianprogrammer.com/2018/11/19/cpp-reading-writing-bmp-images/
 
@@ -14,7 +15,7 @@ struct BMPFileHeader{
     uint16_t file_type{0x4D42};     //File type always BM which is 0x4D42
     uint32_t file_size{0};          //Size of the file in bytes
     uint16_t reserved1{0};          //Reserved, always 0
-    uint32_t reserved2{0};          //Reserved, always 0
+    uint16_t reserved2{0};          //Reserved, always 0
     uint32_t offset_data{0};        //Start position of pixel data, bytes from beginging of file
 };
 
@@ -41,7 +42,7 @@ struct BMPColorHeader{
     uint32_t green_mask{0x0000ff00};    //Bit mask for green channel
     uint32_t blue_mask{0x000000ff};     //blue channel
     uint32_t alpha_mask{0xff000000};    //alpha channel
-    uint32_t color_space_type{0x75324742}; //Default "sRGB" (0x75324742)
+    uint32_t color_space_type{0x73524742}; //Default "sRGB" (0x73524742)
     uint32_t unused[16]{0};              //Unusued data for sRGB color space 
 };
 #pragma pack(pop)
@@ -53,7 +54,6 @@ struct BMP{
     BMPInfoHeader bmp_info_header;
     BMPColorHeader bmp_color_header;
     std::vector<uint8_t> data;
-
 
     //Create a BMP image in memory
     BMP(int32_t width, int32_t height, bool has_alpha = true){
@@ -85,6 +85,8 @@ struct BMP{
 
             uint32_t new_stride = make_stride_aligned(4);
             file_header.file_size = file_header.offset_data + data.size() + bmp_info_header.height * (new_stride - row_stride);
+
+            //std::cout<<"Test"<<std::endl;
         }
     }
 
@@ -105,6 +107,7 @@ struct BMP{
                     data[channels * (y * bmp_info_header.width + x) + 3] = A;
             }
         }
+        //std::cout<<"TestFill"<<std::endl;
     }
 
     //Writing an image to disk
@@ -112,36 +115,41 @@ struct BMP{
 
         std::ofstream of{fname, std::ios_base::binary};
 
-        if(of)
-            if(bmp_info_header.bit_count == 32)
+        if(of){
+            if(bmp_info_header.bit_count == 32){
                 write_headers_and_data(of);
-        
-        else if(bmp_info_header.bit_count == 24)
-            if(bmp_info_header.width % 4 == 0)
-                write_headers_and_data(of);
+                //std::cout<<"Test1"<<std::endl;
+            }
 
-            else{
-                uint32_t new_stride = make_stride_aligned(4);
-                std::vector<uint8_t> padding_row(new_stride - row_stride);
+            else if(bmp_info_header.bit_count == 24){
+                if(bmp_info_header.width % 4 == 0){
+                    write_headers_and_data(of);
+                    //std::cout<<"Test2"<<std::endl;
+                }
 
-                write_headers(of);
+                else{
+                    uint32_t new_stride = make_stride_aligned(4);
+                    std::vector<uint8_t> padding_row(new_stride - row_stride);
 
-                for(int y = 0; y < bmp_info_header.height; ++y){
-                    of.write((const char*)(data.data() + row_stride * y), row_stride);
-                    of.write((const char*)padding_row.data(), padding_row.size());
+                    write_headers(of);
+
+                    for(int y = 0; y < bmp_info_header.height; ++y){
+                        of.write((const char*)(data.data() + row_stride * y), row_stride);
+                        of.write((const char*)padding_row.data(), padding_row.size());
+                    }
+                    std::cout<<"Test3"<<std::endl;
                 }
             }
-        
+            else
+                throw std::runtime_error("This program can only treat 24 or 32 bits per pixel.");
+        }
         else
-            throw std::runtime_error("This program can only treat 24 or 32 bits per pixel.");
-    
-    throw std::runtime_error("Unable to open the output image file.");
+            throw std::runtime_error("Unable to open the output image file.");
     }
 
 private:
 
     uint32_t row_stride{0};
-
 
     void write_headers(std::ofstream &of){
 
@@ -164,7 +172,20 @@ private:
         while(new_stride % align_stride != 0){
             new_stride++;
         }
-
         return new_stride;
+    }
+
+    // Check if the pixel data is stored as BGRA and if the color space type is sRGB
+    void check_color_header(BMPColorHeader &bmp_color_header) {
+        BMPColorHeader expected_color_header;
+        if(expected_color_header.red_mask != bmp_color_header.red_mask ||
+            expected_color_header.blue_mask != bmp_color_header.blue_mask ||
+            expected_color_header.green_mask != bmp_color_header.green_mask ||
+            expected_color_header.alpha_mask != bmp_color_header.alpha_mask) {
+            throw std::runtime_error("Unexpected color mask format! The program expects the pixel data to be in the BGRA format");
+        }
+        if(expected_color_header.color_space_type != bmp_color_header.color_space_type) {
+            throw std::runtime_error("Unexpected color space type! The program expects sRGB values");
+        }
     }
 };
