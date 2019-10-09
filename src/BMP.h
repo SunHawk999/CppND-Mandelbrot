@@ -7,7 +7,6 @@
 
 //Header code based from https://solarianprogrammer.com/2018/11/19/cpp-reading-writing-bmp-images/
 
-
 #pragma pack(push, 1)
 //File header, all BMP images starts with a five elements file header. This has info about 
 //the file type, file size and location of the pixel data.
@@ -85,8 +84,6 @@ struct BMP{
 
             uint32_t new_stride = make_stride_aligned(4);
             file_header.file_size = file_header.offset_data + data.size() + bmp_info_header.height * (new_stride - row_stride);
-
-            //std::cout<<"Test"<<std::endl;
         }
     }
 
@@ -107,7 +104,6 @@ struct BMP{
                     data[channels * (y * bmp_info_header.width + x) + 3] = A;
             }
         }
-        //std::cout<<"TestFill"<<std::endl;
     }
 
     //Writing an image to disk
@@ -116,16 +112,12 @@ struct BMP{
         std::ofstream of{fname, std::ios_base::binary};
 
         if(of){
-            if(bmp_info_header.bit_count == 32){
+            if(bmp_info_header.bit_count == 32)
                 write_headers_and_data(of);
-                //std::cout<<"Test1"<<std::endl;
-            }
 
             else if(bmp_info_header.bit_count == 24){
-                if(bmp_info_header.width % 4 == 0){
+                if(bmp_info_header.width % 4 == 0)
                     write_headers_and_data(of);
-                    //std::cout<<"Test2"<<std::endl;
-                }
 
                 else{
                     uint32_t new_stride = make_stride_aligned(4);
@@ -137,7 +129,6 @@ struct BMP{
                         of.write((const char*)(data.data() + row_stride * y), row_stride);
                         of.write((const char*)padding_row.data(), padding_row.size());
                     }
-                    std::cout<<"Test3"<<std::endl;
                 }
             }
             else
@@ -156,9 +147,8 @@ private:
         of.write((const char*)&file_header, sizeof(file_header));
         of.write((const char*)&bmp_info_header, sizeof(bmp_info_header));
 
-        if(bmp_info_header.bit_count = 32){
+        if(bmp_info_header.bit_count = 32)
             of.write((const char*)&bmp_color_header, sizeof(bmp_color_header));
-        }
     }
 
     void write_headers_and_data(std::ofstream &of){
