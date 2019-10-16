@@ -1,19 +1,16 @@
 #include "BMP.h"
 #include<iostream>
 
-//Start by creating an image making program. Be sure to refrence where the code was based from.
-
-
 int main(){
 
     //Create a BMP image in memory, modify it and save to disk
-    BMP bmp1(800, 800);
+    BMP bmp1(1000, 1000);
 
-    bmp1.fillRegion(0, 0, 800, 800, 100, 200, 150, 0);
+    //Apply mandelbrot image to memory
+    bmp1.mandelbrot(100, 150, 100, 0);
     
-    //bmp1.mandelbrot(800, 800, 0, 150, 0, 100);
-    
-    bmp1.write("image_test.bmp");
+    //Write image in memory to a .bmp file
+    bmp1.write("mandel_image.bmp");
  
     return 0;
 }
