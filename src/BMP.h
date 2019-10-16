@@ -68,7 +68,7 @@ public:
 
     //Given a the coordinates of a point, check if the convergences for c = x + i*y, and returns
     //a value, 255 or 0
-    void mandelbrot(uint32_t x, uint32_t y, uint8_t R, uint8_t B, uint8_t G, uint8_t A);
+    void mandelbrot(uint8_t R, uint8_t B, uint8_t G, uint8_t A);
 
 
 private:
